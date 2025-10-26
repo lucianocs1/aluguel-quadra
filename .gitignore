@@ -1,0 +1,45 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.userprefs
+
+# Rider
+.idea/
+*.sln.iml
+
+# DotNet intermediate
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Logs
+*.log
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# dotCover
+*.dcvr
+
+# Packages
+dist/
+node_modules/
+*.nupkg
+
+# VS Code
+.vscode/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Others
+*.swp
+*.tmp
