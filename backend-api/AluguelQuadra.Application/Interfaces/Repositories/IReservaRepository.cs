@@ -13,6 +13,7 @@ public interface IReservaRepository
     Task<Reserva?> GetByIdAsync(Guid id);
     Task<IEnumerable<Reserva>> GetReservasPorUsuarioAsync(Guid usuarioId);
     Task<IEnumerable<Reserva>> GetReservasPorQuadraEDataAsync(Guid quadraId, DateTime data);
+    Task<IEnumerable<Reserva>> GetAllAsync();
     Task AddAsync(Reserva reserva);
     Task UpdateAsync(Reserva reserva);
     Task SaveChangesAsync();

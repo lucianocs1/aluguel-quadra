@@ -10,7 +10,9 @@ namespace AluguelQuadra.Application.Interfaces.Services;
 /// </summary>
 public interface IReservaService
 {
-    Task<ReservaDto> CriarReservaAsync(CriarReservaDto dto);
+    Task<ReservaPagamentoDto> CriarReservaAsync(CriarReservaDto dto);
     Task<IEnumerable<ReservaDto>> GetReservasPorUsuarioAsync(Guid usuarioId);
     Task CancelarReservaAsync(Guid reservaId);
+    Task<IEnumerable<ReservaDto>> ListarReservasAsync();
+    Task<ReservaPagamentoStatusDto> AtualizarStatusPagamentoAsync(Guid reservaId);
 }

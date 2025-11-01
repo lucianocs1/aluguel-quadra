@@ -1,4 +1,5 @@
 ﻿using AluguelQuadra.Domain.Entities;
+using AluguelQuadra.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AluguelQuadra.Infrastructure.Data;
@@ -38,6 +39,9 @@ public class ApplicationDbContext : DbContext
             builder.Property(q => q.PrecoPorHora)
                 .HasColumnType("numeric(18,2)");
 
+            builder.Property(q => q.ImagemUrl)
+                .HasMaxLength(500);
+
             builder.HasMany(q => q.Reservas)
                 .WithOne(r => r.Quadra)
                 .HasForeignKey(r => r.QuadraId)
@@ -69,6 +73,11 @@ public class ApplicationDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(512);
 
+            builder.Property(c => c.Perfil)
+                .HasConversion<int>()
+                .IsRequired()
+                .HasDefaultValue(PerfilUsuario.Cliente);
+
             builder.HasMany(c => c.Reservas)
                 .WithOne(r => r.Usuario)
                 .HasForeignKey(r => r.UsuarioId)
@@ -95,6 +104,25 @@ public class ApplicationDbContext : DbContext
 
             builder.Property(r => r.Status)
                 .IsRequired();
+
+            builder.Property(r => r.PagamentoId)
+                .HasMaxLength(100);
+
+            builder.Property(r => r.PagamentoStatus)
+                .HasMaxLength(40);
+
+            builder.Property(r => r.PagamentoExpiraEm);
+
+            builder.Property(r => r.PixQrCode);
+            builder.Property(r => r.PixQrCodeBase64);
+            builder.Property(r => r.PixTicketUrl)
+                .HasMaxLength(500);
+
+            builder.Property(r => r.CriadoEm)
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Property(r => r.AtualizadoEm);
         });
     }
 }

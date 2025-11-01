@@ -12,6 +12,7 @@ public class Quadra
     public string Nome { get; set; } = string.Empty;
     public string ModalidadePrincipal { get; set; } = string.Empty;
     public decimal PrecoPorHora { get; set; }
+    public string? ImagemUrl { get; set; }
 
     /// <summary>
     /// Reservas associadas à quadra, carregadas para verificar disponibilidade.

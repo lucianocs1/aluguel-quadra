@@ -40,6 +40,16 @@ public sealed class QuadraRepository : IQuadraRepository
     }
 
     /// <summary>
+    /// Recupera uma quadra com rastreamento para operações de escrita.
+    /// </summary>
+    public async Task<Quadra?> GetByIdForUpdateAsync(Guid id)
+    {
+        return await _context.Quadras
+            .Include(q => q.Reservas)
+            .FirstOrDefaultAsync(q => q.Id == id);
+    }
+
+    /// <summary>
     /// Agenda a inclusão de uma nova quadra no contexto.
     /// </summary>
     public async Task AddAsync(Quadra quadra)

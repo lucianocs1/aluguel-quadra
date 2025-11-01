@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using AluguelQuadra.Application.DTOs;
 using AluguelQuadra.Application.Interfaces.Repositories;
 using AluguelQuadra.Application.Interfaces.Services;
 using AluguelQuadra.Domain.Entities;
+using AluguelQuadra.Domain.Enums;
 
 namespace AluguelQuadra.Application.Services;
 
@@ -23,7 +22,7 @@ public sealed class UsuarioService : IUsuarioService
         _usuarioRepository = usuarioRepository;
     }
 
-    public async Task<UsuarioDto> RegistrarUsuarioAsync(CriarUsuarioDto dto)
+    public async Task<UsuarioDto> RegistrarUsuarioAsync(CriarUsuarioDto dto, PerfilUsuario perfil = PerfilUsuario.Cliente)
     {
         if (string.IsNullOrWhiteSpace(dto.Email))
         {
@@ -43,13 +42,16 @@ public sealed class UsuarioService : IUsuarioService
             throw new ArgumentException("A senha é obrigatória.", nameof(dto.Senha));
         }
 
+        var perfilNormalizado = perfil;
+
         var usuario = new Usuario
         {
             Id = Guid.NewGuid(),
             Nome = dto.Nome.Trim(),
             Sobrenome = dto.Sobrenome.Trim(),
             Email = emailNormalizado,
-            SenhaHash = GerarHashSenha(dto.Senha)
+            SenhaHash = SenhaHelper.GerarHash(dto.Senha),
+            Perfil = perfilNormalizado
         };
 
         await _usuarioRepository.AddAsync(usuario);
@@ -68,7 +70,7 @@ public sealed class UsuarioService : IUsuarioService
         var usuario = await _usuarioRepository.GetByEmailAsync(dto.Email.Trim().ToLowerInvariant())
             ?? throw new InvalidOperationException("Credenciais inválidas.");
 
-        if (!ValidarSenha(dto.Senha, usuario.SenhaHash))
+        if (!SenhaHelper.Validar(dto.Senha, usuario.SenhaHash))
         {
             throw new InvalidOperationException("Credenciais inválidas.");
         }
@@ -88,6 +90,30 @@ public sealed class UsuarioService : IUsuarioService
         return usuario is null ? null : MapToDto(usuario);
     }
 
+    public async Task RemoverUsuarioAsync(Guid id)
+    {
+        var usuario = await _usuarioRepository.GetByIdForUpdateAsync(id)
+            ?? throw new ArgumentException("Usuário não encontrado.", nameof(id));
+
+        if (usuario.Perfil == PerfilUsuario.Administrador)
+        {
+            var quantidadeAdministradores = await _usuarioRepository.CountByPerfilAsync(PerfilUsuario.Administrador);
+            if (quantidadeAdministradores <= 1)
+            {
+                throw new InvalidOperationException("Não é possível remover o último administrador da plataforma.");
+            }
+        }
+
+        await _usuarioRepository.RemoveAsync(usuario);
+        await _usuarioRepository.SaveChangesAsync();
+    }
+
+    public async Task<bool> ValidarAdministradorAsync(Guid usuarioId)
+    {
+        var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
+        return usuario?.Perfil == PerfilUsuario.Administrador;
+    }
+
     private static UsuarioDto MapToDto(Usuario usuario)
     {
         return new UsuarioDto
@@ -95,38 +121,8 @@ public sealed class UsuarioService : IUsuarioService
             Id = usuario.Id,
             Nome = usuario.Nome,
             Sobrenome = usuario.Sobrenome,
-            Email = usuario.Email
+            Email = usuario.Email,
+            Perfil = usuario.Perfil
         };
-    }
-
-    private static string GerarHashSenha(string senha)
-    {
-        var salt = RandomNumberGenerator.GetBytes(16);
-        var senhaBytes = Encoding.UTF8.GetBytes(senha);
-        var hash = SHA256.HashData(Combinar(senhaBytes, salt));
-        return Convert.ToHexString(salt) + ":" + Convert.ToHexString(hash);
-    }
-
-    private static bool ValidarSenha(string senha, string hashArmazenado)
-    {
-        var partes = hashArmazenado.Split(':');
-        if (partes.Length != 2)
-        {
-            return false;
-        }
-
-        var salt = Convert.FromHexString(partes[0]);
-        var hashEsperado = Convert.FromHexString(partes[1]);
-        var senhaBytes = Encoding.UTF8.GetBytes(senha);
-        var hashCalculado = SHA256.HashData(Combinar(senhaBytes, salt));
-        return hashCalculado.AsSpan().SequenceEqual(hashEsperado);
-    }
-
-    private static byte[] Combinar(byte[] primeiraParte, byte[] segundaParte)
-    {
-        var resultado = new byte[primeiraParte.Length + segundaParte.Length];
-        Buffer.BlockCopy(primeiraParte, 0, resultado, 0, primeiraParte.Length);
-        Buffer.BlockCopy(segundaParte, 0, resultado, primeiraParte.Length, segundaParte.Length);
-        return resultado;
     }
 }

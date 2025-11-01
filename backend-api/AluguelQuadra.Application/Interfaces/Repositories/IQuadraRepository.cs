@@ -12,6 +12,7 @@ public interface IQuadraRepository
 {
     Task<IEnumerable<Quadra>> GetAllAsync();
     Task<Quadra?> GetByIdAsync(Guid id);
+    Task<Quadra?> GetByIdForUpdateAsync(Guid id);
     Task AddAsync(Quadra quadra);
     Task UpdateAsync(Quadra quadra);
     Task RemoveAsync(Quadra quadra);

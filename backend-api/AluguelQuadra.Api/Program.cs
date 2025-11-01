@@ -1,7 +1,9 @@
-﻿using AluguelQuadra.Application.Interfaces.Repositories;
+﻿using System.IO;
+using AluguelQuadra.Application.Interfaces.Repositories;
 using AluguelQuadra.Application.Interfaces.Services;
 using AluguelQuadra.Application.Services;
 using AluguelQuadra.Infrastructure.Data;
+using AluguelQuadra.Infrastructure.Payments;
 using AluguelQuadra.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +41,20 @@ builder.Services.AddScoped<IQuadraService, QuadraService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
+builder.Services.Configure<MercadoPagoOptions>(builder.Configuration.GetSection("MercadoPago"));
+builder.Services.AddHttpClient<IMercadoPagoPixService, MercadoPagoPixService>();
+
 var app = builder.Build();
+
+if (string.IsNullOrWhiteSpace(app.Environment.WebRootPath))
+{
+    var defaultWebRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    Directory.CreateDirectory(defaultWebRoot);
+    app.Environment.WebRootPath = defaultWebRoot;
+}
+
+var uploadsPath = Path.Combine(app.Environment.WebRootPath!, "uploads", "quadras");
+Directory.CreateDirectory(uploadsPath);
 
 if (app.Environment.IsDevelopment())
 {
@@ -52,6 +67,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.UseStaticFiles();
 
 app.UseCors("FrontendCors");
 

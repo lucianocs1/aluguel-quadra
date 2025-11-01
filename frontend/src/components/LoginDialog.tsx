@@ -13,12 +13,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { api, ApiError } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import type { LoginUsuarioDto, UsuarioDto } from "@/types/api";
 
 interface LoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLoggedIn?: (usuario: UsuarioDto) => void;
 }
 
 const initialState = {
@@ -26,20 +26,15 @@ const initialState = {
   senha: "",
 };
 
-const LoginDialog = ({ open, onOpenChange, onLoggedIn }: LoginDialogProps) => {
+const LoginDialog = ({ open, onOpenChange }: LoginDialogProps) => {
   const [formState, setFormState] = useState(initialState);
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const mutation = useMutation<UsuarioDto, ApiError, LoginUsuarioDto>({
     mutationFn: (payload) => api.login(payload),
     onSuccess: (usuario) => {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("usuarioId", usuario.id);
-        const nomeCompleto = `${usuario.nome} ${usuario.sobrenome}`.trim();
-        window.localStorage.setItem("usuarioNome", nomeCompleto);
-      }
-
-      onLoggedIn?.(usuario);
+      login(usuario);
 
       toast({
         title: "Login realizado!",

@@ -13,12 +13,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { api, ApiError } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import type { CriarUsuarioDto, UsuarioDto } from "@/types/api";
 
 interface RegisterDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onRegistered?: (usuario: UsuarioDto) => void;
 }
 
 const initialState = {
@@ -28,21 +28,15 @@ const initialState = {
   senha: "",
 };
 
-const RegisterDialog = ({ open, onOpenChange, onRegistered }: RegisterDialogProps) => {
+const RegisterDialog = ({ open, onOpenChange }: RegisterDialogProps) => {
   const [formState, setFormState] = useState(initialState);
   const { toast } = useToast();
+  const { login } = useAuth();
 
   const mutation = useMutation<UsuarioDto, ApiError, CriarUsuarioDto>({
     mutationFn: (payload) => api.registrarUsuario(payload),
     onSuccess: (usuario) => {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("usuarioId", usuario.id);
-        window.localStorage.setItem("usuarioNome", `${usuario.nome} ${usuario.sobrenome}`.trim());
-        const nomeCompleto = `${usuario.nome} ${usuario.sobrenome}`.trim();
-        window.localStorage.setItem("usuarioNome", nomeCompleto);
-      }
-
-      onRegistered?.(usuario);
+      login(usuario);
 
       toast({
         title: "Usuário registrado com sucesso!",
@@ -52,7 +46,7 @@ const RegisterDialog = ({ open, onOpenChange, onRegistered }: RegisterDialogProp
       onOpenChange(false);
       setFormState(initialState);
     },
-    onError: (error: ApiError) => {
+    onError: (error) => {
       const message =
         error.status === 409
           ? "Já existe um usuário cadastrado com este e-mail. Tente fazer login ou utilize outro endereço."

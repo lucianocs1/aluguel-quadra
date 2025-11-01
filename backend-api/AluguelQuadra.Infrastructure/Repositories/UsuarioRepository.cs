@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AluguelQuadra.Application.Interfaces.Repositories;
 using AluguelQuadra.Domain.Entities;
+using AluguelQuadra.Domain.Enums;
 using AluguelQuadra.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,6 +26,13 @@ public sealed class UsuarioRepository : IUsuarioRepository
         return await _context.Usuarios
             .Include(u => u.Reservas)
             .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<Usuario?> GetByIdForUpdateAsync(Guid id)
+    {
+        return await _context.Usuarios
+            .Include(u => u.Reservas)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
@@ -51,6 +59,17 @@ public sealed class UsuarioRepository : IUsuarioRepository
     {
         _context.Usuarios.Update(usuario);
         return Task.CompletedTask;
+    }
+
+    public Task RemoveAsync(Usuario usuario)
+    {
+        _context.Usuarios.Remove(usuario);
+        return Task.CompletedTask;
+    }
+
+    public async Task<int> CountByPerfilAsync(PerfilUsuario perfil)
+    {
+        return await _context.Usuarios.CountAsync(u => u.Perfil == perfil);
     }
 
     public Task SaveChangesAsync()

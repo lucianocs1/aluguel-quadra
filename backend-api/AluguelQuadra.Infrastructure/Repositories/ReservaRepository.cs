@@ -51,13 +51,27 @@ public sealed class ReservaRepository : IReservaRepository
     /// </summary>
     public async Task<IEnumerable<Reserva>> GetReservasPorQuadraEDataAsync(Guid quadraId, DateTime data)
     {
-        var dia = data.Date;
+        var dia = DateTime.SpecifyKind(data.Date, DateTimeKind.Utc);
+        var proximoDia = dia.AddDays(1);
 
         return await _context.Reservas
             .Include(r => r.Usuario)
             .Include(r => r.Quadra)
-            .Where(r => r.QuadraId == quadraId && r.DataHoraInicio.Date == dia)
+            .Where(r => r.QuadraId == quadraId && r.DataHoraInicio >= dia && r.DataHoraInicio < proximoDia)
             .AsNoTracking()
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Retorna todas as reservas cadastradas para exibição administrativa.
+    /// </summary>
+    public async Task<IEnumerable<Reserva>> GetAllAsync()
+    {
+        return await _context.Reservas
+            .Include(r => r.Usuario)
+            .Include(r => r.Quadra)
+            .AsNoTracking()
+            .OrderByDescending(r => r.DataHoraInicio)
             .ToListAsync();
     }
 

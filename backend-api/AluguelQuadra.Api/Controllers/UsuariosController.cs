@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AluguelQuadra.Application.DTOs;
 using AluguelQuadra.Application.Interfaces.Services;
+using AluguelQuadra.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AluguelQuadra.Api.Controllers;
@@ -48,6 +49,34 @@ public sealed class UsuariosController : ControllerBase
     }
 
     /// <summary>
+    /// Permite que um administrador crie usuários e atribua perfis específicos.
+    /// </summary>
+    [HttpPost("admin")]
+    public async Task<ActionResult<UsuarioDto>> RegistrarComPerfilAsync(
+        [FromBody] CriarUsuarioComPerfilDto dto,
+        [FromHeader(Name = "X-Admin-Id")] Guid adminId)
+    {
+        if (!await _usuarioService.ValidarAdministradorAsync(adminId))
+        {
+            return Unauthorized("Apenas administradores podem criar usuários com perfil personalizado.");
+        }
+
+        try
+        {
+            var usuario = await _usuarioService.RegistrarUsuarioAsync(dto, dto.Perfil);
+            return CreatedAtRoute("GetUsuarioById", new { id = usuario.Id }, usuario);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Autentica um usuário por e-mail e senha, retornando seus dados básicos.
     /// </summary>
     [HttpPost("login")]
@@ -72,8 +101,13 @@ public sealed class UsuariosController : ControllerBase
     /// Lista todos os usuários cadastrados.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UsuarioDto>>> ListarAsync()
+    public async Task<ActionResult<IEnumerable<UsuarioDto>>> ListarAsync([FromHeader(Name = "X-Admin-Id")] Guid adminId)
     {
+        if (!await _usuarioService.ValidarAdministradorAsync(adminId))
+        {
+            return Unauthorized("Apenas administradores podem listar usuários.");
+        }
+
         var usuarios = await _usuarioService.ListarUsuariosAsync();
         return Ok(usuarios);
     }
@@ -86,5 +120,31 @@ public sealed class UsuariosController : ControllerBase
     {
         var usuario = await _usuarioService.ObterPorIdAsync(id);
         return usuario is null ? NotFound() : Ok(usuario);
+    }
+
+    /// <summary>
+    /// Remove um usuário do sistema.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> RemoverAsync(Guid id, [FromHeader(Name = "X-Admin-Id")] Guid adminId)
+    {
+        if (!await _usuarioService.ValidarAdministradorAsync(adminId))
+        {
+            return Unauthorized("Apenas administradores podem remover usuários.");
+        }
+
+        try
+        {
+            await _usuarioService.RemoverUsuarioAsync(id);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 }

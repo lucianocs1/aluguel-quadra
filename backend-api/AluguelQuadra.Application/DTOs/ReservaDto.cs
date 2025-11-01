@@ -6,7 +6,7 @@ namespace AluguelQuadra.Application.DTOs;
 /// <summary>
 /// Estrutura retornada aos usuários com os detalhes consolidados de uma reserva.
 /// </summary>
-public sealed class ReservaDto
+public class ReservaDto
 {
     public Guid Id { get; init; }
     public Guid UsuarioId { get; init; }
@@ -18,4 +18,7 @@ public sealed class ReservaDto
     public DateTime DataHoraFim { get; init; }
     public decimal PrecoTotal { get; init; }
     public StatusReserva Status { get; init; }
+    public string? PagamentoStatus { get; init; }
+    public DateTime? PagamentoExpiraEm { get; init; }
+    public string? PixTicketUrl { get; init; }
 }

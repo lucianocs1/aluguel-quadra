@@ -3,12 +3,18 @@ export interface Quadra {
   nome: string;
   modalidadePrincipal: string;
   precoPorHora: number;
+  imagemUrl?: string | null;
 }
 
 export enum StatusReserva {
   Pendente = 0,
   Confirmada = 1,
   Cancelada = 2,
+}
+
+export enum PerfilUsuario {
+  Cliente = 0,
+  Administrador = 1,
 }
 
 export interface HorarioDisponivelDto {
@@ -30,6 +36,10 @@ export interface CriarUsuarioDto {
   senha: string;
 }
 
+export interface CriarUsuarioComPerfilDto extends CriarUsuarioDto {
+  perfil: PerfilUsuario;
+}
+
 export interface LoginUsuarioDto {
   email: string;
   senha: string;
@@ -40,7 +50,17 @@ export interface UsuarioDto {
   nome: string;
   sobrenome: string;
   email: string;
+  perfil: PerfilUsuario;
 }
+
+export interface CriarQuadraDto {
+  nome: string;
+  modalidadePrincipal: string;
+  precoPorHora: number;
+  imagemUrl?: string | null;
+}
+
+export interface AtualizarQuadraDto extends CriarQuadraDto {}
 
 export interface ReservaDto {
   id: string;
@@ -53,4 +73,31 @@ export interface ReservaDto {
   dataHoraFim: string;
   precoTotal: number;
   status: StatusReserva;
+  pagamentoStatus?: string | null;
+  pagamentoExpiraEm?: string | null;
+  pixTicketUrl?: string | null;
+}
+
+export interface PixPagamentoDto {
+  pagamentoId: string;
+  qrCode: string;
+  qrCodeBase64: string;
+  ticketUrl: string;
+  expiraEm: string;
+  status: string;
+}
+
+export interface ReservaPagamentoDto extends ReservaDto {
+  pagamentoId?: string | null;
+  pix?: PixPagamentoDto | null;
+}
+
+export interface ReservaPagamentoStatusDto {
+  reservaId: string;
+  statusReserva: string;
+  statusPagamento?: string | null;
+  pago: boolean;
+  expirado: boolean;
+  pagamentoExpiraEm?: string | null;
+  pagoEm?: string | null;
 }

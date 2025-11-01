@@ -5,7 +5,7 @@ namespace AluguelQuadra.Application.DTOs;
 /// <summary>
 /// Dados necessários para registrar um novo usuário na plataforma.
 /// </summary>
-public sealed class CriarUsuarioDto
+public class CriarUsuarioDto
 {
     public string Nome { get; init; } = string.Empty;
     public string Sobrenome { get; init; } = string.Empty;

@@ -1,4 +1,5 @@
 using System;
+using AluguelQuadra.Domain.Enums;
 
 namespace AluguelQuadra.Application.DTOs;
 
@@ -11,4 +12,5 @@ public sealed class UsuarioDto
     public string Nome { get; init; } = string.Empty;
     public string Sobrenome { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;
+    public PerfilUsuario Perfil { get; init; }
 }
